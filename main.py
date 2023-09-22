@@ -16,8 +16,11 @@ class Name(Field):
 
 class Phone(Field):
     def __init__(self, number):
-        if len(number) == 10:
+        self.number = number
+        if len(number) == 10 and number.isdigit():
             super().__init__(number)
+        else:
+            raise ValueError
 
 
 class Record:
@@ -29,19 +32,28 @@ class Record:
         self.phones.append(Phone(number))
 
     def remove_phone(self, number):
-        self.phones.remove(Phone(number))
+        for phone in self.phones:
+            if phone.value == number:
+                self.phones.remove(phone)
+        else:
+            return None
 
     def edit_phone(self, old_number, new_number):
-        for i in self.phones:
-            if i.value == old_number:
-                self.phones.remove(i)
+        for phone in self.phones:
+            if phone.value == old_number:
+                self.phones.remove(phone)
                 self.phones.append(Phone(new_number))
                 self.phones.reverse()
+                break
+        else:
+            raise ValueError
 
     def find_phone(self, number):
-        for i in self.phones:
-            if i.value == number:
-                return i.value
+        for phone in self.phones:
+            if phone.value == number:
+                return phone
+        else:
+            return None
 
     def __str__(self):
         return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
@@ -78,10 +90,9 @@ for name, record in book.data.items():
 john = book.find("John")
 john.edit_phone("1234567890", "1112223333")
 
+print(john)
+
 found_phone = john.find_phone("5555555555")
 print(f"{john.name}: {found_phone}")
 
 book.delete("Jane")
-
-for name, record in book.data.items():
-    print(record)
