@@ -4,6 +4,7 @@ from datetime import date, datetime
 
 class Field:
     def __init__(self, value):
+        self.__value = None
         self.value = value
 
     @property
@@ -14,9 +15,6 @@ class Field:
     def value(self, value):
         self.__value = value
 
-    # def __str__(self):
-    #     return str(self.__value)
-
 
 class Name(Field):
     def __init__(self, name):
@@ -24,43 +22,31 @@ class Name(Field):
 
 
 class Phone(Field):
-    def __init__(self, number):
-        super().__init__(number)
-        self.number = number
-
-    @property
-    def number(self):
-        return self.__number
-
-    @number.setter
-    def number(self, value):
+    def __init__(self, value):
         if len(value) == 10 and value.isdigit():
-            self.__number = value
+            super().__init__(value)
         else:
             raise ValueError("Uncorrect number")
 
 
 class Birthday(Field):
-    def __init__(self, dates):
-        super().__init__(dates)
-        self.__dates = None
-        self.dates = dates
-
-    @property
-    def date(self):
-        return self.__dates
-
-    @date.setter
-    def date(self, value):
-        if value:
-            try:
-                datetime.strptime(value, '%d/%m/%y')
-            except ValueError:
-                print("Uncorrect date, must will be enter date in format: day/month/year")
+    def __init__(self, value):
+        self.__value = value
+        if value is not None:
+            if self.validate():
+                super().__init__(value)
             else:
-                self.__dates = datetime.strptime(value, '%d/%m/%y')
+                raise ValueError("Uncorrect date, must will be enter date in format: day/month/year")
         else:
-            self.__dates = None
+            super().__init__(None)
+
+    def validate(self):
+        try:
+            datetime.strptime(self.__value, '%d/%m/%y')
+        except ValueError:
+            return False
+        else:
+            return True
 
 
 class Record:
@@ -97,7 +83,7 @@ class Record:
             return None
 
     def days_to_birthday(self):
-        if self.date_of_birthday:
+        if self.date_of_birthday is not None:
             birthday = datetime.strptime(self.date_of_birthday, '%d/%m/%y')
             current_day = date.today()
             if birthday.month < current_day.month:
@@ -137,7 +123,7 @@ class Iterator:
         self.address_book = address_book
 
     def __iter__(self):
-        self.N = 3
+        self.N = 2
         self.current_count_N = 0
         self.idx = 0
         return self
@@ -154,12 +140,12 @@ class Iterator:
 
 book = AddressBook()
 
-john_record = Record("John")
+john_record = Record("John", "21/11/95")
 john_record.add_phone("1234567890")
 john_record.add_phone("5555555555")
 book.add_record(john_record)
 
-jane_record = Record("Jane", "14/3/96")
+jane_record = Record("Jane", "11/3/96")
 jane_record.add_phone("9876543210")
 book.add_record(jane_record)
 
@@ -170,13 +156,15 @@ book.add_record(misha_record)
 for i in book.iterator():
     print(i)
 
+john = book.find("John")
+john.edit_phone("1234567890", "1112223333")
 
-# john = book.find("John")
-# john.edit_phone("1234567890", "1112223333")
-#
-# print(john)
-#
-# found_phone = john.find_phone("5555555555")
-# print(f"{john.name}: {found_phone}")
-#
-# book.delete("Jane")
+print(john)
+
+found_phone = john.find_phone("5555555555")
+print(f"{john.name.value}: {found_phone.value}")
+
+book.delete("Jane")
+
+for i in book.iterator():
+    print(i)
