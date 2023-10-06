@@ -1,5 +1,6 @@
 from collections import UserDict
 from datetime import date, datetime
+import pickle
 
 
 class Field:
@@ -114,7 +115,23 @@ class AddressBook(UserDict):
         if name in self.data:
             self.data.pop(name)
 
+    def search_by_match(self, match):
+        list_serched_contact = []
+        list_str_cont = [str(it) for it in self.data.values()]
+        for st in list_str_cont:
+            if st.lower().find(match.lower()) != -1:
+                list_serched_contact.append(st)
+        return list_serched_contact
+
+    def __getstate__(self):
+        attributes = self.__dict__.copy()
+        return attributes
+
+    def __setstate__(self, value):
+        self.__dict__ = value
+
     def iterator(self):
+
         return Iterator(list(self.data.values()))
 
 
@@ -168,3 +185,14 @@ book.delete("Jane")
 
 for i in book.iterator():
     print(i)
+
+searching = book.search_by_match("765")
+print(searching)
+
+with open("address_book.bin", "wb") as file:
+    pickle.dump(book, file)
+
+with open("address_book.bin", "rb") as file:
+    content = pickle.load(file)
+    print(f"loading_address_book:{content}")
+
